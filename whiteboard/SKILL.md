@@ -44,7 +44,70 @@ The whiteboard activates when you detect these user signals:
 - Quick lookup/clarification → Answer directly
 - User says "stop brainstorming" → Return to previous work
 
-### Scope Guardrail: Push Back on Plan Deviations
+### Decision Tree: Which Skill Should I Use?
+
+```
+START: User wants to discuss something
+│
+├─ Is the topic CLEARLY DEFINED with known requirements?
+│  └─ YES → Can you implement directly? → Delegate to executor
+│           └─ NO → Use `plan` skill for implementation planning
+│
+├─ Is the topic UNCERTAIN, exploring options, or "not sure"?
+│  └─ YES → Is there a specific decision needed? → Use `whiteboard`
+│           └─ NO (general exploration) → Use `brainstorming` skill
+│
+└─ TRIGGER WORDS:
+   - "whiteboard this", "sketch this out", "rough this out" → whiteboard
+   - "plan this", "create a plan for", "break down tasks" → plan
+   - "evaluate", "assess", "what do you think about" → brainstorming
+```
+
+**Quick Reference Table:**
+
+| Situation | Use Skill | Output |
+|-----------|-----------|--------|
+| Rough out approaches when unsure | whiteboard | Informal notes → refine to doc later |
+| Explore multiple options with discussion | brainstorming | Structured exploration with interview |
+| Create detailed implementation plan | plan | Task breakdown with dependencies |
+| Quick note/memory capture | note | Single fact or insight |
+
+**Key Differentiator:**
+- **Whiteboard**: Quick, informal, thinking tool → can refine later
+- **Brainstorming**: Structured exploration with interview workflow
+- **Plan**: Detailed implementation tasks with dependencies
+
+### Skill Switching: When to Switch TO Whiteboard
+
+Whiteboarding can be entered from other skills when they go off-track:
+
+```
+ALREADY IN ANOTHER SKILL → Should you switch to whiteboard?
+│
+├─ In PLANNING session → scope deviation detected?
+│  └─ YES → Switch to whiteboard to explore the deviation
+│           - "This alters the agreed plan. Let's whiteboard this change."
+│
+├─ In BRAINSTORMING → requirements becoming unclear?
+│  └─ YES → Switch to whiteboard to capture what's known
+│           - "We're discovering requirements. Let me whiteboard this."
+│
+└─ During IMPLEMENTATION → blocker or ambiguity found?
+   └─ YES → Switch to whiteboard to resolve
+            - "I need to think through this ambiguity. Whiteboarding..."
+```
+
+**When to SWITCH BACK:**
+- Whiteboard complete → return to original skill with new clarity
+- Or refine whiteboard into appropriate formal doc → resume work
+
+### External Scope Guardrail: Push Back on Plan Deviations
+
+**Purpose:** When IMPLEMENTING, push back on user requests that deviate from agreed plan.
+
+**Distinction from Rule #11:**
+- **External Scope Guardrail** (this section): Protect the PLAN from scope creep during implementation
+- **Rule #11 (Internal Scope Guardrail)**: Protect the WHITEBOARD from drifting into planning
 
 When you detect a request that would **alter the agreed plan's scope** or **deviate from the approved approach**:
 
@@ -134,8 +197,8 @@ Shall we whiteboard this?"
    - If on main or feature/* → Create new whiteboard branch
    ↓
 2. CREATE whiteboard branch (if needed)
-   - git checkout -b whiteboard/{topic-slug}
-   - OR: git worktree add ../{repo}-wb-{topic} -b whiteboard/{topic-slug}
+   - git checkout -b whiteboard/{YYYY-MM-DD}-{topic-slug}
+   - OR: git worktree add ../{repo}-wb-{topic} -b whiteboard/{YYYY-MM-DD}-{topic-slug}
    ↓
 3. CREATE whiteboard file
    - docs/whiteboards/{YYYY-MM-DD}-{topic-slug}.md
@@ -189,6 +252,29 @@ Resuming work on [feature branch/task]
 
 ## Agent Behavior Rules
 
+### Core Principles (Remember These First)
+
+> **16 detailed rules below are organized into 3 principles.**
+> **Focus on the principles; reference detailed rules as needed.**
+
+**PRINCIPLE 1: COLLABORATE FIRST**
+- Don't unilateral resolve issues - discuss with user
+- Guide, don't drive - user controls content
+- Present options with trade-offs; let user decide
+- This prevents Issues #1, #6, #8 (unilateral resolution patterns)
+
+**PRINCIPLE 2: DOCUMENT COMPLETELY**
+- Pin insights immediately when creating valuable content
+- Document decisions with full options presented, not just "User said: A"
+- Decision Record format prevents information loss (Issue #7)
+- Never rely on summarization at end
+
+**PRINCIPLE 3: STAY IN SCOPE**
+- **Internal:** Whiteboarding = requirements exploration, NOT implementation planning
+- **External:** Guard plan from scope creep during implementation
+- Validate Session Intent before exit
+- This prevents Issue #3 (rushing to next phase prematurely)
+
 ### For You (Conductor)
 
 1. **Detect existing docs** before creating whiteboard
@@ -198,7 +284,8 @@ Resuming work on [feature branch/task]
 
 2. **Always use whiteboard branches** - NEVER create whiteboards on main or feature branches
    - Check current branch: `git branch --show-current`
-   - If not `whiteboard/*`: create `whiteboard/{topic-slug}` branch first
+   - If not `whiteboard/*`: create `whiteboard/{date}-{topic-slug}` branch first
+   - Branch format: `whiteboard/{YYYY-MM-DD}-{topic-slug}` (prevents naming collisions)
    - Commit whiteboard files to this branch
    - This applies to ALL whiteboards, not just mid-session interruptions
 
@@ -292,13 +379,50 @@ Resuming work on [feature branch/task]
     - Add any findings to OPEN QUESTIONS; resolve with user before exit
     - This prevents "we thought we were done" issues later
 
-11. **Stay in scope - Requirements NOT Implementation**
+11. **Stay in scope - Internal Scope Guardrail**
     - **WHITEBOARDING** = exploring requirements, options, understanding the problem
     - **PLANNING** = breaking down implementation, tasks, dependencies
     - Do NOT offer to "create implementation plan" or "delegate to architect for spec" during whiteboarding
     - Only when ALL requirements are cohesive and complete, ask user: "Ready to move to planning?"
     - If you catch yourself drifting into implementation, stop and return to requirements exploration
     - This is the most common cause of whiteboard process failure
+    - **See also:** "External Scope Guardrail" section for handling scope creep during implementation
+
+12. **Validate Session Intent before exit** - Prevent premature completion
+    - Exit checklist confirms questions resolved, but must also confirm PURPOSE achieved
+    - Before offering "ready to proceed" or exit, explicitly ask user:
+      - "Did we accomplish what we set out to do?"
+      - Review Session Intent together before closing
+    - A whiteboard can pass all other checks but still fail its purpose
+    - This prevents "we answered 12 questions but never explored the actual problem"
+
+13. **Recovery Protocol: When Whiteboard Goes Off Track**
+    - **What "derailed" means:** Specific scenarios that require recovery
+      | Scenario | What It Looks Like | Recovery Action |
+      |----------|-------------------|-----------------|
+      | Scope drift | Started exploring requirements, now discussing implementation | Return to requirements exploration |
+      | Unilateral resolution | Writing decisions without user input | Stop, present to user for discussion |
+      | Wrong topic | Whiteboard about X, now discussing unrelated Y | Move Y to "Branches", return to X |
+      | Circular discussion | Repeating same points without progress | Summarize, ask what's blocking |
+      | Premature exit | User says "ready" but open questions remain | Stop, list unresolved questions |
+    - **Recovery steps:**
+      1. **STOP immediately** - Acknowledge the issue
+      2. **ASK user:** "I think we [drifted into X]. Should I get us back to [original topic]?"
+      3. **RECOVER by:**
+         - Adding "Recovery Note" to whiteboard documenting what happened
+         - Creating "Back on Track: [date]" section with renewed focus
+         - Moving off-topic content to "Branches" or separate parked whiteboard
+      4. **DO NOT** start over from scratch unless user requests it
+    - If whiteboard is hopelessly derailed and user agrees:
+      - Archive current whiteboard with status "derailed"
+      - Start fresh whiteboard with lessons learned noted
+    - Recovery Note format:
+      ```markdown
+      ## Recovery Note: [Date]
+      > **Issue:** [specific scenario from table above]
+      > **Triggered by:** [what caused the drift]
+      > **Resolution:** Returning to [original intent / revised intent]
+      ```
 
 ### When Delegating to Subagents
 
@@ -391,7 +515,39 @@ When whiteboard is complete, offer appropriate options based on detected structu
 - Add "Refined Into" link when archived
 - Remove entry only when discarded
 
-## Examples
+### Resuming Parked Whiteboards
+
+When user wants to continue a previously parked whiteboard:
+
+1. **READ** the full parked whiteboard to understand context
+2. **SUMMARIZE** key points for user:
+   - Original Session Intent
+   - What was discussed
+   - What was left unresolved
+3. **ASK user:**
+   ```
+   "This whiteboard was parked on [date] about [topic].
+
+   Key points: [brief summary of 2-3 items]
+
+   Unresolved: [list open questions]
+
+   Ready to continue?"
+   ```
+4. **IF yes:**
+   - Add "Resumed: [date]" section to whiteboard
+   - Update _open-sessions.md: `parked` → `active`
+   - Continue discussion
+5. **IF no:**
+   - Ask if they want to archive or discard
+
+**Mode transition announcement:**
+```
+"Resuming WHITEBOARD from parked state: [topic]
+
+Last worked on: [date]
+Context: [brief context]
+```
 
 ### Example 1: Mid-Session Exploration
 
@@ -541,6 +697,52 @@ You: [Creates session hierarchy table, then immediately pins it]
       [Pinning this to whiteboard ✓]
 
       The core principle: Each session has clear inputs, clear outputs, and a checkpoint..."
+```
+
+### Example 7: Gap Resolution with Decision Records
+
+```
+[After expert review identified 4 critical gaps]
+
+You: "Let me add these to OPEN QUESTIONS and work through each one..."
+
+[Added to whiteboard:]
+
+## OPEN QUESTIONS
+
+| # | Gap | Status | Answer |
+|---|-----|--------|--------|
+| 1 | Performance at high speed | OPEN | |
+| 2 | Event buffer overflow | OPEN | |
+| 3 | No search/filter | OPEN | |
+| 4 | No error display | OPEN | |
+
+[For each gap, presented options and asked user to choose:]
+
+### Gap #1: Performance - Display Updates at High Speed
+
+**Options Presented:**
+| Option | Description | Trade-offs |
+|--------|-------------|------------|
+| A | Frame rate cap at 60 FPS | Simpler; may miss fast events |
+| B | Batch updates every N ticks | More complex; good balance |
+| C | Dynamic based on speed | Most flexible; hardest to implement |
+
+> **User said:** "A. Although if we implement conditional breakpoints,
+> the simulation should run at MAX and only update when breakpoint hit."
+
+**Resolution:**
+- Display capped at 60 FPS in normal mode
+- Breakpoint mode: sim runs at MAX, display updates only on hit
+- Breakpoint dialog popup appears when hit
+
+**Rejected Options:**
+- B: Batch updates adds complexity; user wants simple cap
+- C: Dynamic approach not needed for MVP
+
+[All 4 gaps resolved with complete Decision Records]
+
+You: "All gaps resolved. Ready to move to Phase 2?"
 ```
 
 ## Template Structure

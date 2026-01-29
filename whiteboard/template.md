@@ -148,6 +148,7 @@
 **EXIT CHECKLIST:**
 Before offering "ready to proceed" or exiting whiteboard:
 - [ ] All questions marked RESOLVED or DEFERRED
+- [ ] Session Intent achieved - **ask user explicitly: "Did we accomplish what we set out to do?"**
 - [ ] User confirms ready to proceed
 - [ ] No unilateral resolutions
 - [ ] All decisions have complete documentation (options + user choice)

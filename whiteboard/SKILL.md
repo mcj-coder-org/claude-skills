@@ -25,6 +25,7 @@ The whiteboard activates when you detect these user signals:
 
 **Explicit Triggers:**
 - "whiteboard", "wb:", "whiteboard this"
+- "add a whiteboard to [X]" → **LITERAL TRIGGER: create whiteboard first, then execute**
 - "rough this out", "sketch this out"
 - "let me think about this", "explore this approach"
 - "park this thought", "branch this idea"
@@ -262,6 +263,21 @@ Resuming work on [feature branch/task]
 - Guide, don't drive - user controls content
 - Present options with trade-offs; let user decide
 - This prevents Issues #1, #6, #8 (unilateral resolution patterns)
+
+**⚠️ WARNING SIGNS - You are about to violate this principle:**
+- You're about to write a resolution without user input
+- You're offering to "consolidate requirements" with open questions
+- You're thinking "this is obvious, I'll just document it"
+- You feel excited to "get through" the gaps/questions
+- **User says "add a whiteboard to [X]" and you immediately execute** ← META-FAILURE
+  → This means CREATE whiteboard FIRST, then discuss the approach
+
+**STOP. Before taking action, ask yourself:**
+1. "Did I discuss this with the user?"
+2. "Did the user choose this approach?"
+3. "Am I documenting rather than collaborating?"
+
+If the answer is NO to any of these: **STOP and discuss first.**
 
 **PRINCIPLE 2: DOCUMENT COMPLETELY**
 - Pin insights immediately when creating valuable content
